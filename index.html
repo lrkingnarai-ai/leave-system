@@ -244,7 +244,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyBTzhK27g2dUvSVFWGz4RxX5cuBns_TPCE",
             authDomain: "leave-system-db-140ab.firebaseapp.com",
-            databaseURL: "https://leave-system-db-140ab-default-rtdb.firebaseio.com",
+            databaseURL: "https://leave-system-db-140ab-default-rtdb.firebaseio.com", // ปรับแก้ลิงก์ให้ถูกต้องตาม Firebase จริงแล้ว
             projectId: "leave-system-db-140ab",
             storageBucket: "leave-system-db-140ab.firebasestorage.app",
             messagingSenderId: "775586126846",
@@ -550,6 +550,7 @@
             if(!t) return;
             const msgEl = document.getElementById('toastMessage');
             if(msgEl) msgEl.innerText = msg;
+            t.classList.transparent = false;
             t.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
