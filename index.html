@@ -44,13 +44,13 @@
                 </div>
             </div>
             <div class="flex items-center flex-wrap gap-2.5">
-                <button onclick="openReportModal()" class="bg-indigo-700 hover:bg-indigo-800 text-indigo-100 font-medium px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-2">
+                <button type="button" onclick="openReportModal()" class="bg-indigo-700 hover:bg-indigo-800 text-indigo-100 font-medium px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-2">
                     <i class="fa-solid fa-file-arrow-down"></i> พิมพ์รายงาน
                 </button>
-                <button onclick="openCancelModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow-sm">
+                <button type="button" onclick="openCancelModal()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-ban"></i> ยกเลิกขอวันลาหยุด
                 </button>
-                <button onclick="openLeaveModal()" class="bg-white text-indigo-600 hover:bg-indigo-50 font-semibold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                <button type="button" onclick="openLeaveModal()" class="bg-white text-indigo-600 hover:bg-indigo-50 font-semibold px-4 py-2 rounded-xl shadow transition flex items-center gap-2 text-sm">
                     <i class="fa-solid fa-plus-circle"></i> ยื่นคำขอลาหยุด
                 </button>
             </div>
@@ -66,9 +66,9 @@
                 <div class="flex justify-between items-center mb-4">
                     <h2 id="calendarMonthYear" class="text-lg font-bold text-slate-700"></h2>
                     <div class="flex items-center gap-1">
-                        <button onclick="changeMonth(-1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition"><i class="fa-solid fa-chevron-left"></i></button>
-                        <button onclick="goToCurrentMonth()" class="px-3 py-1 text-xs bg-indigo-50 text-indigo-600 rounded-lg font-medium hover:bg-indigo-100 transition">เดือนนี้</button>
-                        <button onclick="changeMonth(1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition"><i class="fa-solid fa-chevron-right"></i></button>
+                        <button type="button" onclick="changeMonth(-1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button type="button" onclick="goToCurrentMonth()" class="px-3 py-1 text-xs bg-indigo-50 text-indigo-600 rounded-lg font-medium hover:bg-indigo-100 transition">เดือนนี้</button>
+                        <button type="button" onclick="changeMonth(1)" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition"><i class="fa-solid fa-chevron-right"></i></button>
                     </div>
                 </div>
                 <div class="grid grid-cols-7 text-center text-xs font-semibold text-slate-400 mb-2">
@@ -244,7 +244,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyBTzhK27g2dUvSVFWGz4RxX5cuBns_TPCE",
             authDomain: "leave-system-db-140ab.firebaseapp.com",
-            databaseURL: "https://leave-system-db-140ab-default-rtdb.firebaseio.com", // ปรับแก้ URL ให้ตรงกับ Console เรียบร้อย
+            databaseURL: "https://leave-system-db-140ab-default-rtdb.firebaseio.com",
             projectId: "leave-system-db-140ab",
             storageBucket: "leave-system-db-140ab.firebasestorage.app",
             messagingSenderId: "775586126846",
@@ -262,16 +262,21 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             const todayStr = formatDateKey(new Date());
-            document.getElementById('startDate').value = todayStr;
-            document.getElementById('endDate').value = todayStr;
-            document.getElementById('cancelStartDate').value = todayStr;
-            document.getElementById('cancelEndDate').value = todayStr;
+            const targetDateInput = document.getElementById('startDate');
+            if(targetDateInput && !targetDateInput.value) targetDateInput.value = todayStr;
+            const endDateInput = document.getElementById('endDate');
+            if(endDateInput && !endDateInput.value) endDateInput.value = todayStr;
+            const cancelStart = document.getElementById('cancelStartDate');
+            if(cancelStart && !cancelStart.value) cancelStart.value = todayStr;
+            const cancelEnd = document.getElementById('cancelEndDate');
+            if(cancelEnd && !cancelEnd.value) cancelEnd.value = todayStr;
 
             db.ref('leaveRequests').on('value', (snapshot) => {
                 const data = snapshot.val();
                 leaveRequests = data ? Object.values(data) : [];
                 renderAll();
             }, (error) => {
+                console.error("Firebase Database Error:", error);
                 showToast("เชื่อมต่อฐานข้อมูลไม่สำเร็จ: " + error.message, "error");
             });
         });
@@ -293,11 +298,13 @@
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            document.getElementById('calendarMonthYear').innerText = `${TH_MONTHS[month]} ${year + 543}`;
+            const monthYearEl = document.getElementById('calendarMonthYear');
+            if(monthYearEl) monthYearEl.innerText = `${TH_MONTHS[month]} ${year + 543}`;
             const firstDayIndex = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
             const prevTotalDays = new Date(year, month, 0).getDate();
             const container = document.getElementById('calendarDays');
+            if(!container) return;
             container.innerHTML = '';
 
             for (let i = firstDayIndex - 1; i >= 0; i--) {
@@ -346,10 +353,13 @@
 
         function renderDailySummary() {
             const [y, m, d] = selectedDateStr.split('-');
-            document.getElementById('selectedDateTitle').innerText = `สรุปผู้ลาหยุดวันที่ ${parseInt(d)} ${TH_MONTHS[parseInt(m) - 1]} ${parseInt(y) + 543}`;
+            const titleEl = document.getElementById('selectedDateTitle');
+            if(titleEl) titleEl.innerText = `สรุปผู้ลาหยุดวันที่ ${parseInt(d)} ${TH_MONTHS[parseInt(m) - 1]} ${parseInt(y) + 543}`;
             const active = leaveRequests.filter(req => req.status !== 'REJECTED' && selectedDateStr >= req.startDate && selectedDateStr <= req.endDate);
-            document.getElementById('dailyCountBadge').innerText = `${active.length} คนหยุดวันนี้`;
+            const badgeEl = document.getElementById('dailyCountBadge');
+            if(badgeEl) badgeEl.innerText = `${active.length} คนหยุดวันนี้`;
             const listEl = document.getElementById('dailyLeaveList');
+            if(!listEl) return;
 
             if (active.length === 0) {
                 listEl.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs"><i class="fa-solid fa-mug-hot text-2xl mb-2 block opacity-40"></i>ไม่มีพนักงานลาหยุดในวันนี้</div>`;
@@ -367,10 +377,12 @@
         }
 
         function renderQueue() {
-            const filter = document.getElementById('statusFilter').value;
+            const filterEl = document.getElementById('statusFilter');
+            const filter = filterEl ? filterEl.value : 'ALL';
             let sorted = [...leaveRequests].sort((a, b) => a.timestamp - b.timestamp);
             if (filter !== 'ALL') sorted = sorted.filter(r => r.status === filter);
             const container = document.getElementById('queueContainer');
+            if(!container) return;
 
             if (sorted.length === 0) {
                 container.innerHTML = `<div class="text-center py-12 text-slate-400 text-xs">ไม่พบรายการคำขอ</div>`;
@@ -404,22 +416,37 @@
         }
 
         function updateStats() {
-            document.getElementById('statTotal').innerText = leaveRequests.length;
-            document.getElementById('statPending').innerText = leaveRequests.filter(r => r.status === 'PENDING').length;
-            document.getElementById('statApproved').innerText = leaveRequests.filter(r => r.status === 'APPROVED').length;
+            const totalEl = document.getElementById('statTotal');
+            if(totalEl) totalEl.innerText = leaveRequests.length;
+            const pendingEl = document.getElementById('statPending');
+            if(pendingEl) pendingEl.innerText = leaveRequests.filter(r => r.status === 'PENDING').length;
+            const approvedEl = document.getElementById('statApproved');
+            if(approvedEl) approvedEl.innerText = leaveRequests.filter(r => r.status === 'APPROVED').length;
         }
 
         function handleLeaveSubmit() {
-            const name = document.getElementById('employeeName').value.trim();
-            const dept = document.getElementById('employeeDept').value;
-            const type = document.getElementById('leaveType').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            const reason = document.getElementById('leaveReason').value.trim();
+            const nameEl = document.getElementById('employeeName');
+            const deptEl = document.getElementById('employeeDept');
+            const typeEl = document.getElementById('leaveType');
+            const startEl = document.getElementById('startDate');
+            const endEl = document.getElementById('endDate');
+            const reasonEl = document.getElementById('leaveReason');
+
+            if (!nameEl || !startEl || !endEl) {
+                alert("ไม่พบฟอร์มข้อมูลในระบบ");
+                return;
+            }
+
+            const name = nameEl.value.trim();
+            const dept = deptEl ? deptEl.value : 'พยาบาล';
+            const type = typeEl ? typeEl.value : 'ลาพักร้อน';
+            const startDate = startEl.value;
+            const endDate = endEl.value;
+            const reason = reasonEl ? reasonEl.value.trim() : '';
 
             if (!name) {
                 alert("กรุณากรอกชื่อ-นามสกุลด้วยครับ");
-                document.getElementById('employeeName').focus();
+                nameEl.focus();
                 return;
             }
             if (!startDate || !endDate) {
@@ -427,16 +454,13 @@
                 return;
             }
 
-            const existing = leaveRequests.find(r => r.name === name && r.startDate === startDate && r.endDate === endDate);
-            if (existing && !confirm(`พบคำขอเดิมของ "${name}" ช่วงเวลานี้ ต้องการเขียนทับหรือไม่?`)) return;
-
-            const newId = existing ? existing.id : 'REQ-' + Math.floor(1000 + Math.random() * 9000);
+            const newId = 'REQ-' + Date.now();
             db.ref('leaveRequests/' + newId).set({
                 id: newId, name, dept, type, startDate, endDate, reason,
                 status: 'PENDING', timestamp: Date.now()
             }, (error) => {
                 if (error) {
-                    showToast("บันทึกไม่สำเร็จ: " + error.message, "error");
+                    alert("บันทึกไม่สำเร็จ: " + error.message);
                 } else {
                     closeLeaveModal();
                     showToast("ยื่นคำขอลาหยุดสำเร็จแล้ว!", "success");
@@ -445,9 +469,14 @@
         }
 
         function handleCancelSubmit() {
-            const name = document.getElementById('cancelName').value.trim();
-            const startDate = document.getElementById('cancelStartDate').value;
-            const endDate = document.getElementById('cancelEndDate').value;
+            const nameEl = document.getElementById('cancelName');
+            const startEl = document.getElementById('cancelStartDate');
+            const endEl = document.getElementById('cancelEndDate');
+
+            if(!nameEl || !startEl || !endEl) return;
+            const name = nameEl.value.trim();
+            const startDate = startEl.value;
+            const endDate = endEl.value;
 
             if (!name) { alert("กรุณากรอกชื่อ"); return; }
 
@@ -476,29 +505,51 @@
             }
         }
 
-        function openLeaveModal() { document.getElementById('leaveModal').classList.remove('hidden'); }
-        function closeLeaveModal() { 
-            document.getElementById('leaveModal').classList.add('hidden'); 
-            document.getElementById('employeeName').value = '';
-            document.getElementById('leaveReason').value = '';
+        function openLeaveModal() { 
+            const m = document.getElementById('leaveModal');
+            if(m) m.classList.remove('hidden'); 
         }
-        function openCancelModal() { document.getElementById('cancelModal').classList.remove('hidden'); }
-        function closeCancelModal() { document.getElementById('cancelModal').classList.add('hidden'); }
+        function closeLeaveModal() { 
+            const m = document.getElementById('leaveModal');
+            if(m) m.classList.add('hidden'); 
+            const nameInput = document.getElementById('employeeName');
+            if(nameInput) nameInput.value = '';
+            const reasonInput = document.getElementById('leaveReason');
+            if(reasonInput) reasonInput.value = '';
+        }
+        function openCancelModal() { 
+            const m = document.getElementById('cancelModal');
+            if(m) m.classList.remove('hidden'); 
+        }
+        function closeCancelModal() { 
+            const m = document.getElementById('cancelModal');
+            if(m) m.classList.add('hidden'); 
+        }
         function openReportModal() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            document.getElementById('reportTitle').innerText = `รายงานสรุปประจำเดือน ${TH_MONTHS[month]} ${year + 543}`;
+            const titleEl = document.getElementById('reportTitle');
+            if(titleEl) titleEl.innerText = `รายงานสรุปประจำเดือน ${TH_MONTHS[month]} ${year + 543}`;
             const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
             const monthly = leaveRequests.filter(r => r.startDate.startsWith(monthStr) || r.endDate.startsWith(monthStr));
-            document.getElementById('reportTableBody').innerHTML = monthly.length === 0 ? `<tr><td colspan="7" class="text-center py-8 text-slate-400">ไม่พบข้อมูล</td></tr>` : 
-                monthly.map((r, i) => `<tr class="hover:bg-slate-50"><td class="p-2.5">${i+1}</td><td class="p-2.5 font-medium">${r.name}</td><td class="p-2.5">${r.dept}</td><td class="p-2.5">${r.type}</td><td class="p-2.5">${r.startDate} ถึง ${r.endDate}</td><td class="p-2.5">${r.status}</td><td class="p-2.5">${r.reason || '-'}</td></tr>`).join('');
-            document.getElementById('reportModal').classList.remove('hidden');
+            const tbody = document.getElementById('reportTableBody');
+            if(tbody) {
+                tbody.innerHTML = monthly.length === 0 ? `<tr><td colspan="7" class="text-center py-8 text-slate-400">ไม่พบข้อมูล</td></tr>` : 
+                    monthly.map((r, i) => `<tr class="hover:bg-slate-50"><td class="p-2.5">${i+1}</td><td class="p-2.5 font-medium">${r.name}</td><td class="p-2.5">${r.dept}</td><td class="p-2.5">${r.type}</td><td class="p-2.5">${r.startDate} ถึง ${r.endDate}</td><td class="p-2.5">${r.status}</td><td class="p-2.5">${r.reason || '-'}</td></tr>`).join('');
+            }
+            const repModal = document.getElementById('reportModal');
+            if(repModal) repModal.classList.remove('hidden');
         }
-        function closeReportModal() { document.getElementById('reportModal').classList.add('hidden'); }
+        function closeReportModal() { 
+            const m = document.getElementById('reportModal');
+            if(m) m.classList.add('hidden'); 
+        }
         
         function showToast(msg, type='success') {
             const t = document.getElementById('toast');
-            document.getElementById('toastMessage').innerText = msg;
+            if(!t) return;
+            const msgEl = document.getElementById('toastMessage');
+            if(msgEl) msgEl.innerText = msg;
             t.classList.remove('translate-y-20', 'opacity-0');
             setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
